@@ -42,6 +42,10 @@ public class item {
         this.imageURL = imageURL;
     }
 
+    public item(){
+
+    }
+
     public item (int id, String name, double value, String imageURL){
         this.id = id;
         this.name = name;

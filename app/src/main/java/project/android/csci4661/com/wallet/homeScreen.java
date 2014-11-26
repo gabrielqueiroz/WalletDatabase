@@ -1,81 +1,89 @@
 package project.android.csci4661.com.wallet;
 
-import android.app.Activity;
+
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.app.ListActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.app.ListActivity;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
-import project.android.csci4661.com.walletDatabase.DatabaseConnector;
-
+import project.android.csci4661.com.walletDatabase.item;
 
 public class homeScreen extends ListActivity {
 
-    private static final String ITEMS = "items";
-    private SharedPreferences savedItems;
-    private ArrayList<String> items;
-    private ArrayAdapter<String> adapter;
+    private final String dbName = "myWallet2";
+    private final String tableName = "items";
+
+    private final item item1 = new item(1,"wallet",99.9,"wallet");
+    private final item item2 = new item(2,"Bank",99.9,"Bank");
+    private final item item3 = new item(3,"CreditCard",99.9,"CreditCard");
+    private final item[] defaultItems = new item[]{item1,item2,item3};
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home_screen);
 
-        DatabaseConnector databaseConnector = new DatabaseConnector(getParent());
+        ArrayList<String> results = new ArrayList<String>();
+        SQLiteDatabase sampleDB = null;
 
-//        Cursor cursor = databaseConnector.getAllItems();
+        try {
+            sampleDB = this.openOrCreateDatabase(dbName, MODE_PRIVATE, null);
+            sampleDB.execSQL("CREATE TABLE IF NOT EXISTS "+tableName+"(itemId INTEGER PRIMARY KEY AUTOINCREMENT, itemName TEXT, itemValue REAL, itemImage TEXT);");
 
-        savedItems = getSharedPreferences(ITEMS, MODE_PRIVATE);
+            for(item item : defaultItems)
+                sampleDB.execSQL("INSERT INTO "+tableName+" Values ('"+String.valueOf(item.getId())+"', " +
+                        "'"+item.getName()+"', '"+String.valueOf(item.getValue())+"', '"+item.getImage()+"');");
 
-        items = new ArrayList<String>(savedItems.getAll().keySet());
-        Collections.sort(items, String.CASE_INSENSITIVE_ORDER);
+            Cursor c = sampleDB.rawQuery("SELECT itemName FROM "+ tableName,null);
 
-        adapter = new ArrayAdapter<String>(this, R.layout.list_item, items);
-        setListAdapter(adapter);
-
-        getListView().setOnItemClickListener(itemClickListener);
-
-  //      databaseConnector.getAllItems();
-
-        SharedPreferences.Editor preferencesEditor = savedItems.edit();
-
-  //      cursor.moveToFirst();
-
-        for(int i=0;i<3;i++) {
-  //          int nameIndex = cursor.getColumnIndex("name");
-  //          preferencesEditor.putString(cursor.getString(nameIndex), cursor.getString(nameIndex));
-  //          cursor.moveToNext();
+            if (c!=null){
+                if (c.moveToFirst()){
+                    do {
+                        String firstName = c.getString(c.getColumnIndex("itemName"));
+                        results.add(firstName);
+                    } while (c.moveToNext());
+                    c.close();
+                }
+            }
+            ArrayAdapter<String> aAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,results);
+            this.setListAdapter(aAdapter);
+        } catch (SQLiteException se){
+            Toast.makeText(getApplicationContext(), "Couldn't CREATE or OPEN the database", Toast.LENGTH_LONG).show();
+        } finally {
+            if (sampleDB!=null){
+                sampleDB.execSQL("DELETE FROM "+tableName);
+                sampleDB.close();
+            }
         }
 
-        preferencesEditor.apply();
+        getListView().setOnItemClickListener(itemClickListener);
 
     }
 
     AdapterView.OnItemClickListener itemClickListener = new AdapterView.OnItemClickListener()
     {
         @Override
-        public void onItemClick(AdapterView<?> parent, View view,
-                                int position, long id)
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id)
         {
             Intent myIntent = new Intent(homeScreen.this, walletItem.class);
-            String value = String.valueOf(position)+" Wallet Item";
-            myIntent.putExtra("key", value);
+            String item = ((TextView) view).getText().toString();
+            myIntent.putExtra("item", item);
             homeScreen.this.startActivity(myIntent);
         }
     };
-
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -96,5 +104,9 @@ public class homeScreen extends ListActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public interface itemClickListener{
+
+        public void onContactSelected(long rowID);
+    }
 
 }

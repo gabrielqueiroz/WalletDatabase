@@ -9,7 +9,7 @@
         android:layout_gravity="center_horizontal"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Balance $ 0.00"
-        android:id="@+id/textView4"
+        android:id="@+id/balance"
         android:layout_row="0"
         android:layout_column="0" />
 
