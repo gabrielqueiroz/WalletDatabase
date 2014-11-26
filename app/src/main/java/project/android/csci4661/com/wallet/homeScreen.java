@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.app.ListActivity;
@@ -18,56 +19,21 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import project.android.csci4661.com.walletDatabase.DatabaseHandler;
 import project.android.csci4661.com.walletDatabase.item;
 
 public class homeScreen extends ListActivity {
-
-    private final String dbName = "myWallet2";
-    private final String tableName = "items";
-
-    private final item item1 = new item(1,"wallet",99.9,"wallet");
-    private final item item2 = new item(2,"Bank",99.9,"Bank");
-    private final item item3 = new item(3,"CreditCard",99.9,"CreditCard");
-    private final item[] defaultItems = new item[]{item1,item2,item3};
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ArrayList<String> results = new ArrayList<String>();
-        SQLiteDatabase sampleDB = null;
+        DatabaseHandler db = new DatabaseHandler(this);
 
-        try {
-            sampleDB = this.openOrCreateDatabase(dbName, MODE_PRIVATE, null);
-            sampleDB.execSQL("CREATE TABLE IF NOT EXISTS "+tableName+"(itemId INTEGER PRIMARY KEY AUTOINCREMENT, itemName TEXT, itemValue REAL, itemImage TEXT);");
+        ArrayList<String> results = db.getAllItemsNames();
 
-            for(item item : defaultItems)
-                sampleDB.execSQL("INSERT INTO "+tableName+" Values ('"+String.valueOf(item.getId())+"', " +
-                        "'"+item.getName()+"', '"+String.valueOf(item.getValue())+"', '"+item.getImage()+"');");
-
-            Cursor c = sampleDB.rawQuery("SELECT itemName FROM "+ tableName,null);
-
-            if (c!=null){
-                if (c.moveToFirst()){
-                    do {
-                        String firstName = c.getString(c.getColumnIndex("itemName"));
-                        results.add(firstName);
-                    } while (c.moveToNext());
-                    c.close();
-                }
-            }
-            ArrayAdapter<String> aAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,results);
-            this.setListAdapter(aAdapter);
-        } catch (SQLiteException se){
-            Toast.makeText(getApplicationContext(), "Couldn't CREATE or OPEN the database", Toast.LENGTH_LONG).show();
-        } finally {
-            if (sampleDB!=null){
-                sampleDB.execSQL("DELETE FROM "+tableName);
-                sampleDB.close();
-            }
-        }
+        ArrayAdapter<String> aAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,results);
+        this.setListAdapter(aAdapter);
 
         getListView().setOnItemClickListener(itemClickListener);
 
@@ -108,5 +74,48 @@ public class homeScreen extends ListActivity {
 
         public void onContactSelected(long rowID);
     }
+
+    /**
+
+     private final String dbName = "myWallet2";
+     private final String tableName = "items";
+
+     private final item item1 = new item(1,"wallet",99.9,"wallet");
+     private final item item2 = new item(2,"Bank",99.9,"Bank");
+     private final item item3 = new item(3,"CreditCard",99.9,"CreditCard");
+     private final item[] defaultItems = new item[]{item1,item2,item3};
+
+     try {
+     sampleDB = this.openOrCreateDatabase(dbName, MODE_PRIVATE, null);
+     sampleDB.execSQL("CREATE TABLE IF NOT EXISTS "+tableName+"(itemId INTEGER PRIMARY KEY AUTOINCREMENT, itemName TEXT, itemValue REAL, itemImage TEXT);");
+
+     for(item item : defaultItems)
+     sampleDB.execSQL("INSERT INTO "+tableName+" Values ('"+String.valueOf(item.getId())+"', " +
+     "'"+item.getName()+"', '"+String.valueOf(item.getValue())+"', '"+item.getImage()+"');");
+
+     Cursor c = sampleDB.rawQuery("SELECT itemName FROM "+ tableName,null);
+
+     if (c!=null){
+     if (c.moveToFirst()){
+     do {
+     String firstName = c.getString(c.getColumnIndex("itemName"));
+     results.add(firstName);
+     } while (c.moveToNext());
+     c.close();
+     }
+     }
+
+     ArrayAdapter<String> aAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,results);
+     this.setListAdapter(aAdapter);
+
+     } catch (SQLiteException se){
+     Toast.makeText(getApplicationContext(), "Couldn't CREATE or OPEN the database", Toast.LENGTH_LONG).show();
+     } finally {
+     if (sampleDB!=null){
+     sampleDB.execSQL("DELETE FROM "+tableName);
+     sampleDB.close();
+     }
+     }
+     */
 
 }

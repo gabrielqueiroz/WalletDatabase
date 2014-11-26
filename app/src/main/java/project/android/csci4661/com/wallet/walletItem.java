@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import project.android.csci4661.com.walletDatabase.DatabaseHandler;
 import project.android.csci4661.com.walletDatabase.item;
 
 
@@ -26,42 +27,17 @@ public class walletItem extends Activity {
         super.onCreate(savedInstanceState);
         Bundle extras = getIntent().getExtras();
 
-        String value ="Not Found";
-        if(extras !=null)
+        String value = "wallet";
+        if(extras != null)
             value = extras.getString("item");
 
-        SQLiteDatabase sampleDB = null;
-        item item = new item();
+        DatabaseHandler db = new DatabaseHandler(this);
+        item item = db.getItemByName(value);
 
-        try {
-            sampleDB = this.openOrCreateDatabase(dbName, MODE_PRIVATE, null);
-
-            Cursor c = sampleDB.rawQuery("SELECT * FROM items WHERE itemName = \"" + value + "\";",null);
-
-            if(c.moveToFirst()) {
-                c.moveToFirst();
-                item.setName(c.getString(c.getColumnIndex("itemName")));
-                item.setValue(c.getDouble(c.getColumnIndex("itemValue")));
-
-                TextView textBalance = (TextView) findViewById(R.id.balance);
-                textBalance.setText(String.valueOf(item.getValue()));
-                TextView textTest = (TextView) findViewById(R.id.textTest);
-                textTest.setText(item.getName());
-
-                c.close();
-            } else {
-                TextView textTest = (TextView) findViewById(R.id.textTest);
-                textTest.setText(value);
-                item = null;
-            }
-
-        } catch (SQLiteException se){
-            Toast.makeText(getApplicationContext(), "Couldn't OPEN the database", Toast.LENGTH_LONG).show();
-        } finally {
-            if (sampleDB!=null){
-                sampleDB.close();
-            }
-        }
+        TextView textBalance = (TextView) findViewById(R.id.balance);
+        textBalance.setText(String.valueOf(item.getValue()));
+        TextView textTest = (TextView) findViewById(R.id.textTest);
+        textTest.setText(value);
 
         setContentView(R.layout.activity_wallet_item);
     }
@@ -88,5 +64,27 @@ public class walletItem extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     try {
+     sampleDB = this.openOrCreateDatabase(dbName, MODE_PRIVATE, null);
+
+     Cursor c = sampleDB.rawQuery("SELECT itemName, itemValue FROM items WHERE itemName = \"" + value + "\"",null);
+
+     if(c.moveToFirst()) {
+     c.moveToFirst();
+     item.setName(c.getString(c.getColumnIndex("itemName")));
+     item.setValue(c.getDouble(c.getColumnIndex("itemValue")));
+     c.close();
+     } else
+     item = new item(0,"Default",00.0,"Default");
+
+
+     } catch (SQLiteException se){
+     Toast.makeText(getApplicationContext(), "Couldn't OPEN the database", Toast.LENGTH_LONG).show();
+     } finally {
+     if (sampleDB!=null)
+     sampleDB.close();
+     }
+     */
 
 }
